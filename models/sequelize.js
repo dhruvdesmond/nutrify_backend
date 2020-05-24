@@ -1,8 +1,24 @@
 const Sequelize = require('sequelize');
 
-////////////////////// SQl
-const sequelize = new Sequelize('calendly', 'root', 'root123', {
-    host: 'localhost',
+////////////////////// offline SQl
+// const sequelize = new Sequelize('calendly', 'root', 'root123', {
+//     host: 'localhost',
+//     dialect: 'mysql'
+// });
+// sequelize
+//     .authenticate()
+//     .then(() => {
+//         console.log('Connection has been established successfully.');
+//     })
+//     .catch(err => {
+//         console.error('Unable to connect to the database:', err);
+//     });
+// sequelize.sync();
+//////////////////////////////////
+
+////////////////////// Online heroku
+const sequelize = new Sequelize('nutrify', 'b526a666132f89', '49414326', {
+    host: 'us-cdbr-east-06.cleardb.net/',
     dialect: 'mysql'
 });
 sequelize
@@ -16,4 +32,7 @@ sequelize
 sequelize.sync();
 //////////////////////////////////
 
+
 module.exports = sequelize;
+
+// mysql://b526a666132f89:49414326@us-cdbr-east-06.cleardb.net/heroku_91ac32a8079d0b8?reconnect=true
