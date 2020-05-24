@@ -18,7 +18,7 @@ const Sequelize = require('sequelize');
 
 ////////////////////// Online heroku
 const sequelize = new Sequelize('heroku_91ac32a8079d0b8', 'b526a666132f89', '49414326', {
-    host: 'us-cdbr-east-06.cleardb.net/',
+    host: 'us-cdbr-east-06.cleardb.net',
     dialect: 'mysql'
 });
 sequelize
