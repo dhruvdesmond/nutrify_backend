@@ -7,8 +7,11 @@ app.set('view engine', 'ejs');
 path = require("path");
 const User = require('./models/user')
 app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use(cors())
+const PORT = process.env.PORT || 5000
 
 var userRoutes = require("./routes/user");
 
@@ -27,5 +30,6 @@ app.use(userRoutes);
 app.use(mealRoutes);
 
 
-const port = 8000
-app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))
+app.listen(PORT, function () {
+    console.log("Server running on port 5000...");
+});
