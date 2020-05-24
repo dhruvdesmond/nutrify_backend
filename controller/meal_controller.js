@@ -5,8 +5,8 @@ var express = require("express");
 
 var NutritionixClient = require('nutritionix');
 var nutritionix = new NutritionixClient({
-    appId: '732661df',
-    appKey: '80451c846f26dc21e903158a11fd29e9',
+    appId: process.env.APPID,
+    appKey: process.env.APPKEY,
 });
 
 
