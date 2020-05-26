@@ -3,14 +3,15 @@ const multer = require('multer');
 const upload = multer();
 var router = express.Router();
 const User = require('../models/user');
-
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const User_functions = require('../controller/user_controller');
 const app = express()
 var session = require('express-session')
 
 router.use(session({
     secret: 'keyboard cat',
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     cookie: {
         maxAge: 60000
@@ -20,11 +21,11 @@ router.use(session({
 router.get("/users", function (req, res) {
     User_functions.getAllUsers()
         .then((users) => {
-            console.log(users)
-            res.send(users)
+            console.log("Rrturning users list !!")
+            return res.json(users)
         })
         .catch(err => {
-            res.send(err)
+            return res.json({ error :err})
         })
 
 });
@@ -32,10 +33,10 @@ router.get("/users/:id",User_functions.requiresLogin, function (req, res) {
     console.log(typeof req.params.id)
     User_functions.getUserById(req.params.id)
         .then(user => {
-            return res.send(user)
+            return res.json(user)
         })
         .catch(err => {
-            return res.send(err)
+            return res.status(400).json({error:err})
         })
 });
 
@@ -45,13 +46,37 @@ router.post("/users", upload.none(), function (req, res) {
     const curr_email = req.body.email
     const curr_password = req.body.password
     const curr_total_calories = req.body.total_calories
-    User_functions.addUser(curr_name, curr_email, curr_password, curr_total_calories)
-        .then(() => {
-            return res.redirect("/users")
+    const hashed_password = bcrypt.hashSync(curr_password, saltRounds);
+    // User_functions.addUser(curr_name, curr_email, curr_password, curr_total_calories)
+    //     .then(() => {
+    //         return res.redirect("/users")
+    //     })
+    //     .catch(err => {
+    //         console.log("addUser error : ",err)
+    //         return res.status(400).json({error : err})
+    //     })
+    User.findOne({
+        where: {
+            email: curr_email
+        }
+    })
+    .then(user => {
+        if (user ) {
+            return res.status(400).json({error:"Email already exists"})
+        }
+        User.create({
+            name: curr_name,
+            email: curr_email,
+            password: hashed_password,
+            max_calories: curr_total_calories
         })
-        .catch(err => {
-            return res.send(err)
+        .then(user => {
+            return res.redirect("/login")
         })
+    })
+    .catch(err => {
+        return res.status(400).json({error:err})
+    })
 });
 router.put("/users/:id", upload.none(),User_functions.requiresLogin, function (req, res) {
     const user_id = req.params.id
@@ -102,6 +127,7 @@ router.post("/login", upload.none(), async function (req, res) {
     }
     req.session.LoggedIn = true
     req.session.user_id = login_res['user_id']
+    console.log("Successfully logged in !!!")
     return res.redirect("/users")
 });
 

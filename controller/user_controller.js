@@ -26,7 +26,8 @@ const addUser = async (curr_name, curr_email, curr_password, curr_total_calories
     const hashed_password = bcrypt.hashSync(curr_password, saltRounds);
     return new Promise((resolve, reject) => {
         if(check_unique_email == -1){
-            reject("Email already exists.")
+            console.log("Email already exists.")
+            reject({err:"Email already exists."})
         }
         User.create({
                 name: curr_name,
@@ -113,7 +114,7 @@ const getUserByEmail = (curr_email) => {
                 }
             })
             .then(user => {
-                if (user.length == 0) {
+                if (user === null || user.length == 0) {
                     resolve("User does not exist")
                 }
                 resolve(-1)
@@ -214,11 +215,12 @@ const loginUser = async (req, email, pasword) => {
 
 
 const requiresLogin = (req, res, next) => {
+    console.log("req.session",req.session)
     if (req.session && req.session.user_id) {
         return next();
     } else {
-
-        return res.send('You must be logged in to view this page.')
+        console.log("User not logged in")
+        return res.status(400).json({error:'You must be logged in to view this page.'})
     }
 }
 
