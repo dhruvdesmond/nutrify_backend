@@ -11,7 +11,7 @@ app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-app.use(cors())
+app.use(cors({credentials: true, origin:[ 'http://localhost:3000']}))
 const PORT = process.env.PORT || 5000
 
 var userRoutes = require("./routes/user");
@@ -25,6 +25,7 @@ app.get('/', (req, res) => {
 
 app.post('/', (req, res) => {
     console.log("post")
+    
 })
 
 app.use(userRoutes);

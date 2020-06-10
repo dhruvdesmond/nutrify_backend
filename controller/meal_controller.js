@@ -60,6 +60,7 @@ const updateMeal = async (meal_id, curr_name, calories) => {
     if (calories == null || calories === 0 || calories == undefined) {
         calories = await getFoodCalories(curr_name)
     }
+    return new Promise((resolve, reject) => {
     Meal.update({
             food_name: curr_name,
             calories: calories
@@ -69,13 +70,17 @@ const updateMeal = async (meal_id, curr_name, calories) => {
             }
         })
         .then((res) => {
-            User_functions.updateUserCalories(user_id)
-            resolve(res)
+            resolve (res)
+            
+    
+            
+           
         })
         .catch(err => {
             console.log("Error in Update Meal", err)
             reject("Error in Update Meal", err)
         })
+    })
 }
 
 const getMealById = (curr_meal_id) => {

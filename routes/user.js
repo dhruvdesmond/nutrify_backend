@@ -8,13 +8,16 @@ const saltRounds = 10;
 const User_functions = require('../controller/user_controller');
 const app = express()
 var session = require('express-session')
+const jwt = require('jsonwebtoken');
 
 router.use(session({
     secret: 'keyboard cat',
-    resave: true,
-    saveUninitialized: false,
+    resave: false,
+    saveUninitialized: true,
     cookie: {
-        maxAge: 60000
+        maxAge: 60000,
+        secure: false
+
     }
 }))
 
@@ -30,13 +33,16 @@ router.get("/users", function (req, res) {
 
 });
 router.get("/users/:id",User_functions.requiresLogin, function (req, res) {
-    console.log(typeof req.params.id)
+    const isAuthorised = User_functions.authorise(req,res,req.params.id)
+    if(!isAuthorised){
+        return res.status(403).json({error:"You are not authorised !!"})
+    }
     User_functions.getUserById(req.params.id)
         .then(user => {
             return res.json(user)
         })
         .catch(err => {
-            return res.status(400).json({error:err})
+            return res.status(403).json({error:err})
         })
 });
 
@@ -79,6 +85,10 @@ router.post("/users", upload.none(), function (req, res) {
     })
 });
 router.put("/users/:id", upload.none(),User_functions.requiresLogin, function (req, res) {
+    const isAuthorised = User_functions.authorise(req,res,req.params.id)
+    if(!isAuthorised){
+        return res.status(403).json({error:"You are not authorised !!"})
+    }
     const user_id = req.params.id
     const curr_email = req.body.email
     const curr_password = req.body.password
@@ -102,6 +112,10 @@ router.put("/users/:id", upload.none(),User_functions.requiresLogin, function (r
 
 
 router.delete("/users/:id",User_functions.requiresLogin, function (req, res) {
+    const isAuthorised = User_functions.authorise(req,res,req.params.id)
+    if(!isAuthorised){
+        return res.status(403).json({error:"You are not authorised !!"})
+    }
     const user_id = req.params.id
     User.destroy({
             where: {
@@ -117,7 +131,6 @@ router.delete("/users/:id",User_functions.requiresLogin, function (req, res) {
 });
 
 router.post("/login", upload.none(), async function (req, res) {
-    console.log("API");
     const curr_email = req.body.email
     const curr_password = req.body.password
     
@@ -125,11 +138,37 @@ router.post("/login", upload.none(), async function (req, res) {
     if (login_res == -1 || login_res == false) {
         return res.send({error:"Wrong username or password"})
     }
-    req.session.LoggedIn = true
-    req.session.user_id = login_res['user_id']
-    console.log("Successfully logged in !!!")
-    return res.redirect("/users")
+
+    const jwt_token = generateJWTToken(login_res.toJSON())
+    console.log(jwt_token)
+    return res.header('auth_token',jwt_token).status(200).send({jwt_token})
 });
+
+router.get("/authenticate/:id", upload.none(), async function (req, res) {
+    
+    const isAuthorised = User_functions.authorise(req,res,req.params.id)
+    if(!isAuthorised){
+        return res.status(403).json({error:"You are not authorised !!"})
+    }
+    return res.status(200).json({success:"You are logged in."})
+});
+
+
+
+
+const generateJWTToken = (userData) =>{
+    return jwt.sign(userData, process.env.SECRET_KEY,{ expiresIn: '1h' });
+ }
+
+// const requiresLogin = (req, res, next) => {
+//     console.log("req.session : ",req.session)
+//     if ("cookie" in req.) {
+//         return next();
+//     } else {
+//         console.log("User not logged in")
+//         return res.status(401).json({error:'You must be logged in to view this page.'})
+//     }
+// }
 
 
 
@@ -141,7 +180,7 @@ router.post('/logout', function (req, res, next) {
             if (err) {
                 return next(err);
             } else {
-                return res.redirect('/users');
+                return res.json({msg:"Successfully logged out"});
             }
         });
     }

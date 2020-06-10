@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const app = express()
 
+const jwt = require('jsonwebtoken');
 
 
 
@@ -25,9 +26,11 @@ const addUser = async (curr_name, curr_email, curr_password, curr_total_calories
     const check_unique_email = await getUserByEmail(curr_email)
     const hashed_password = bcrypt.hashSync(curr_password, saltRounds);
     return new Promise((resolve, reject) => {
-        if(check_unique_email == -1){
+        if (check_unique_email == -1) {
             console.log("Email already exists.")
-            reject({err:"Email already exists."})
+            reject({
+                err: "Email already exists."
+            })
         }
         User.create({
                 name: curr_name,
@@ -79,7 +82,6 @@ const getUserCurrCalories = (curr_usr_id) => {
                 resolve(user["current_calories"])
             })
             .catch(err => {
-                console.log(err)
                 reject(err)
             })
     })
@@ -173,11 +175,11 @@ const getAllCaloriesOfOneUser = async (user_id) => {
                 if (meals.length == 0) {
                     resolve(0)
                 } else {
-                    console.log(meals)
                     let curr_calorie = 0
                     meals.forEach(meal => {
                         curr_calorie += meal["calories"]
                     });
+                    console.log("Tatal meal cals : ", curr_calorie)
                     resolve(curr_calorie)
                 }
             })
@@ -200,10 +202,10 @@ const loginUser = async (req, email, pasword) => {
                 return user
             })
             .then(user => {
-                console.log(pasword,user['password'])
+                console.log(pasword, user['password'])
                 bcrypt.compare(pasword, user['password']).
                 then(function (result) {
-                    if(result ==false || result === false){
+                    if (result == false || result === false) {
                         resolve(false)
                     }
                     resolve(user)
@@ -215,15 +217,63 @@ const loginUser = async (req, email, pasword) => {
 
 
 const requiresLogin = (req, res, next) => {
-    console.log("req.session",req.session)
-    if (req.session && req.session.user_id) {
-        return next();
-    } else {
-        console.log("User not logged in")
-        return res.status(400).json({error:'You must be logged in to view this page.'})
+    // Get auth header value
+    const token = req.header('auth_token')
+    if (!token) {
+        return res.status(401).json({
+            error: "You do not have permission"
+        })
+    }
+    try {
+        const verified = jwt.verify(token, process.env.SECRET_KEY);
+        console.log("User is logged in !!")
+        next()
+    } catch (err) {
+        res.status(400).json({
+            error: "Invalid token"
+        })
     }
 }
 
+
+const authorise = (req, res, user_id) => {
+    const token = req.header('auth_token')
+    if (!token) {
+        console.log("Token not found")
+        return false
+    }
+    try {
+        const decoded = jwt.decode(token);
+        let current_user_id = decoded['user_id']
+        current_user_id = parseInt(current_user_id)
+        console.log(current_user_id, parseInt(user_id))
+        if (current_user_id == parseInt(user_id)) {
+            return true
+        }
+        return false
+    } catch (err) {
+        return err
+    }
+}
+
+
+const getUserIdFromJWT = (req, res) => {
+    const token = req.header('auth_token')
+    return new Promise((resolve, reject) => {
+        if (!token) {
+
+            reject( false)
+        }
+        try {
+            const decoded = jwt.decode(token);
+            const current_user_id = decoded['user_id']
+
+            resolve (current_user_id)
+        } catch (err) {
+            reject( false)
+        }
+    })
+}
 
 
 module.exports = {
@@ -237,5 +287,7 @@ module.exports = {
     getUserById,
     loginUser,
     requiresLogin,
-    getUserByEmail
+    getUserByEmail,
+    authorise,
+    getUserIdFromJWT
 };
