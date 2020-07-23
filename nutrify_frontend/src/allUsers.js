@@ -1,19 +1,15 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {
     BrowserRouter as Router,
-    Switch,
-    Route,
-    Link,
+
     Redirect
   } from "react-router-dom";
 
-import dotenv from  'dotenv'
 
 
-  class AllUsers extends React.Component {
+class AllUsers extends React.Component {
 
     constructor(props) {
         super(props);
@@ -71,8 +67,7 @@ import dotenv from  'dotenv'
 
 function IsCalsExdeeded(props) {
     const user = props.curr_list.user
-    console.log(props)
-    console.log(user)
+
     
     const user_id = user['user_id']
     

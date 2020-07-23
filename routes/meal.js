@@ -15,6 +15,7 @@ router.get("/meals/user/:id", function (req, res) {
         }
         })
         .then(meals => {
+            console.log(meals.length)
             res.json(meals)
         })
         .catch(err => {
@@ -37,21 +38,30 @@ router.get("/meals", function (req, res) {
 router.post("/meals", upload.none(),User_functions.requiresLogin, async function (req, res) {
     const food_name = req.body.food_name
     const curr_calories = req.body.calories
-
-    const user_id = User_functions.getUserIdFromJWT(req,res)
-    try {
-
-        const user = await User_functions.checkUserExists(user_id)
-
-        if (user === -1) {
-            return res.json({error:"No such user"})
-        }
-        const new_meal =   await Meal_functions.createMeal(food_name, curr_calories, user_id)
-
-        return res.json(new_meal)
-    } catch (e) {
-        return res.json({error:e})
-    }
+    console.log("Meal details =  = ",food_name,curr_calories)
+    User_functions.getUserIdFromJWT(req,res)
+    .then(user_id=>{
+        User_functions.checkUserExists(user_id)
+        .then(user=>{
+            if (user === -1) {
+                return res.json({error:"No such user"})
+            }
+            Meal_functions.createMeal(food_name, curr_calories, user_id)
+            .then(newMeal=>{
+                return res.json(newMeal)
+            })
+            .catch(err=>{
+                return res.json({error:err})
+            })
+        })
+        .catch(err=>{
+            return res.json({error:err})
+        })
+    })
+    .catch(err=>{
+        return res.json({error:err})
+    })
+    
 
 });
 router.get("/meals/:id", function (req, res) {
@@ -71,6 +81,7 @@ router.put("/meals/:id", upload.none(),async function (req, res) {
     User_functions.getUserIdFromJWT(req,res)
     .then((user_id)=>{
         User_functions.updateUserCalories(user_id)
+        
     })
     const meal = await Meal_functions.getMealById(meal_id)
     return res.json(meal)

@@ -77,7 +77,7 @@ router.post("/users", upload.none(), function (req, res) {
             max_calories: curr_total_calories
         })
         .then(user => {
-            return res.redirect("/login")
+            return res.status(200).json(user)
         })
     })
     .catch(err => {
@@ -170,7 +170,18 @@ const generateJWTToken = (userData) =>{
 //     }
 // }
 
-
+router.get('/logout', function (req, res, next) {
+    if (req.session) {
+        // delete session object
+        req.session.destroy(function (err) {
+            if (err) {
+                return next(err);
+            } else {
+                return res.json({msg:"Successfully logged out"});
+            }
+        });
+    }
+});
 
 
 router.post('/logout', function (req, res, next) {

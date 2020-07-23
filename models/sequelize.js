@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 ////////////////////// offline SQl
-const sequelize = new Sequelize('calendly', process.env.DB_USER,process.env.DB_PASS, {
+const sequelize = new Sequelize(process.env.DB_Name, process.env.DB_USER,process.env.DB_PASS, {
     host: 'localhost',
     dialect: 'mysql'
 });

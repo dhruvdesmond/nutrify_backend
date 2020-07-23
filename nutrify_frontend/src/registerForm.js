@@ -1,104 +1,97 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import LoginForm from './loginForm';
+import React, { useState, useEffect } from "react";
+import "./index.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    Link,
-    Redirect,
-    useHistory 
-  } from "react-router-dom";
-  import dotenv from  'dotenv'
+import { BrowserRouter as Router, Redirect } from "react-router-dom";
+import dotenv from "dotenv";
 
-class RegisterForm extends React.Component {
-    
-    constructor(props) {
-        super(props);
-        this.state = {
-            username: '',
-            password:'',
-            email: '',
-            total_calories:0,
-            redirect: false};
-    
-        this.handleUsernameChange = this.handleUsernameChange.bind(this);
-        this.handlePasswordChange = this.handlePasswordChange.bind(this);
-        this.handleEmailChange = this.handleEmailChange.bind(this);
-        this.handleTotalCaloriesChange = this.handleTotalCaloriesChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-    }
-
-    handleUsernameChange(event) {
-
-        this.setState({username: event.target.value});
-    }
-    handlePasswordChange(event) {
-
-        this.setState({password: event.target.value});
-    }
-    handleTotalCaloriesChange(event) {
-
-        this.setState({total_calories: event.target.value});
-    }
-    handleEmailChange(event) {
-
-        this.setState({email: event.target.value});
-    }
-    handleSubmit(event) {
-        
+const NewRegisterForm = (props) => {
+    const [userName, setUserName] = useState("");
+    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [total_calories, SetTotalCalories] = useState(undefined);
+    const [total_calories_string, SetTotalCaloriesString] = useState("");
+    // const [redirect, setRedirect] = useState(false);
+    const handleSubmit = (event) => {
         event.preventDefault();
-        
+
         const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({  email: this.state.email,
-                                    password : this.state.password ,
-                                    name : this.state.username,
-                                    total_calories : this.state.total_calories
-                                })  
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                name: userName,
+                total_calories: total_calories,
+            }),
         };
-        let first = process.env.REACT_APP_URL
-        let second_arg = "users"
-        let url = first + second_arg
-        console.log(url)
+        let first = process.env.REACT_APP_URL;
+        let second_arg = "users";
+        let url = first + second_arg;
         fetch(url, requestOptions)
-        .then(response => response.json())
-        .then(data => {
-            if('error' in data){
-                console.log(data)
-                alert(data['error']);
-            }
-            else{
-                this.setState({ redirect: true })
-            }
-        })
-    }
-    
-    render() {
-        const { redirect } = this.state;
-        if (redirect) {
-            return <Redirect to='/login'/>;
+            .then((response) => response.json())
+            .then((data) => {
+                if ("error" in data) {
+                    console.log(data);
+                    alert(data["error"]);
+                } else {
+                    props.toggleSignUp();
+                }
+            });
+    };
+    useEffect(() => {
+        if (total_calories_string !== "") {
+            SetTotalCalories(SetTotalCaloriesString);
         }
-        return (
-            
-          <form className="form-control" onSubmit={this.handleSubmit}>
+    }, [total_calories_string]);
+    return (
+        <form
+            className="form-control"
+            style={{ height: "auto", margin: "15px" }}
+            onSubmit={handleSubmit}
+        >
+            <input
+                className="form-control login-signup"
+                type="text"
+                placeholder="Enter your user name"
+                name="username"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+            />
 
-              <input className="form-control login-signup" type="text" placeholder="Enter your user name" name="username" value={this.state.username }  onChange={this.handleUsernameChange}  />
+            <input
+                className="form-control login-signup"
+                type="text"
+                placeholder="Enter your email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+            />
 
-              <input className="form-control login-signup"type="text"placeholder="Enter your email"name="email" value={this.state.email }  onChange={this.handleEmailChange}  />
+            <input
+                className="form-control login-signup"
+                type="text"
+                placeholder="Enter your password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+            />
 
-              <input className="form-control login-signup"type="text" placeholder="Enter your password"name="password" value={this.state.password }  onChange={this.handlePasswordChange}  />
+            <input
+                className="form-control login-signup"
+                type="number"
+                name="totalCalories"
+                placeholder="Enter your total calories"
+                value={total_calories}
+                onChange={(e) => SetTotalCalories(e.target.value)}
+            />
+            <input
+                className="form-control   btn-primary login-signup"
+                type="submit"
+                value="Submit"
+            />
+        </form>
+    );
+};
 
-              <input className="form-control login-signup"type="text" name="totalCalories" placeholder="Enter your total calories" value={this.state.total_calories }  onChange={this.handleTotalCaloriesChange}  />
-            <input className="form-control   btn-primary login-signup"type="submit" value="Submit" />
-          </form>
-        );
-      } 
-}
-
-
-export default RegisterForm; 
+export default NewRegisterForm;

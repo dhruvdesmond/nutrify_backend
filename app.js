@@ -11,8 +11,8 @@ app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-app.use(cors({credentials: true, origin:[ 'http://localhost:3000']}))
-const PORT = process.env.PORT || 5000
+app.use(cors())
+const PORT = process.env.PORT || 8080
 
 var userRoutes = require("./routes/user");
 
@@ -33,5 +33,5 @@ app.use(mealRoutes);
 
 
 app.listen(PORT, function () {
-    console.log("Server running on port 5000...");
+    console.log("Server running on port :",PORT);
 });
